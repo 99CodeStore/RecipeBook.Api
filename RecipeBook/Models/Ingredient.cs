@@ -11,5 +11,10 @@ namespace RecipeBook.Models
         [Required]
         public string Name { get; set; }
         public decimal Amount { get; set; }
+        public Ingredient(string Name,decimal Amount)
+        {
+            this.Name = Name;
+            this.Amount = Amount;
+        }
     }
 }
