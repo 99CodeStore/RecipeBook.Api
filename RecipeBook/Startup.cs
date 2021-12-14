@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using RecipeBook.Data;
 
 namespace RecipeBook
 {
@@ -19,8 +21,9 @@ namespace RecipeBook
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
-            services.AddControllers();
+            services.AddDbContext<RecipeBookDbContext>(options =>
+            options.UseSqlServer(Configuration.GetConnectionString("DefaultSqlServerConnection"))
+            ); ;
             services.AddCors(setupAction =>
                     {
                         setupAction.AddPolicy("CorsPolicyAllowAll", policy =>
@@ -41,6 +44,8 @@ namespace RecipeBook
                     Description = "Recipe Book-API provides REST-APIs for Receipe Book Application for various plateforms like Angular Apps, Android Apps etc. "
                 });
             });
+            
+            services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
