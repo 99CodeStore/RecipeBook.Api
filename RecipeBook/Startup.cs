@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using RecipeBook.Configuration;
 using RecipeBook.Data;
 
 namespace RecipeBook
@@ -33,6 +34,8 @@ namespace RecipeBook
                          .AllowAnyHeader();
                        });
                     });
+
+            services.AddAutoMapper(typeof(MapperInitializer));
 
             services.AddSwaggerGen(c =>
             {

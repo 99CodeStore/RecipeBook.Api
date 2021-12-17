@@ -1,6 +1,5 @@
 ﻿using RecipeBook.Data;
 using RecipeBook.IRepository;
-using RecipeBook.Models;
 using System;
 using System.Threading.Tasks;
 

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace RecipeBook.Models
+namespace RecipeBook.Data
 {
     [Table("Ingredients")]
     public class Ingredient

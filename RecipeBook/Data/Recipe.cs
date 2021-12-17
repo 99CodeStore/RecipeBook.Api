@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RecipeBook.Models
+namespace RecipeBook.Data
 {
     [Table("Recipes")]
     public class Recipe
@@ -28,6 +28,6 @@ namespace RecipeBook.Models
         public string Description { get; set; }
         public string ImageUrl { get; set; }
         [NotMapped]
-        public List<Ingredient> Ingredients { get; set; }
+        public virtual List<Ingredient> Ingredients { get; set; }
     }
 }
