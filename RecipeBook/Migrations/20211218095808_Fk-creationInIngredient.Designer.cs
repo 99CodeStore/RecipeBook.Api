@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RecipeBook.Data;
 
@@ -10,9 +11,10 @@ using RecipeBook.Data;
 namespace RecipeBook.Migrations
 {
     [DbContext(typeof(RecipeBookDbContext))]
-    partial class RecipeBookDbContextModelSnapshot : ModelSnapshot
+    [Migration("20211218095808_Fk-creationInIngredient")]
+    partial class FkcreationInIngredient
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,64 +46,6 @@ namespace RecipeBook.Migrations
                     b.HasIndex("RecipeId");
 
                     b.ToTable("Ingredients");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1L,
-                            Amount = 5m,
-                            Name = "चीनी",
-                            RecipeId = 1L
-                        },
-                        new
-                        {
-                            Id = 2L,
-                            Amount = 5m,
-                            Name = "मैदा",
-                            RecipeId = 1L
-                        },
-                        new
-                        {
-                            Id = 3L,
-                            Amount = 5m,
-                            Name = "तेल",
-                            RecipeId = 1L
-                        },
-                        new
-                        {
-                            Id = 4L,
-                            Amount = 5m,
-                            Name = "पके सूखे आलू",
-                            RecipeId = 2L
-                        },
-                        new
-                        {
-                            Id = 5L,
-                            Amount = 2m,
-                            Name = "मटर",
-                            RecipeId = 2L
-                        },
-                        new
-                        {
-                            Id = 6L,
-                            Amount = 2m,
-                            Name = "प्याज",
-                            RecipeId = 2L
-                        },
-                        new
-                        {
-                            Id = 7L,
-                            Amount = 2m,
-                            Name = "दाल",
-                            RecipeId = 2L
-                        },
-                        new
-                        {
-                            Id = 8L,
-                            Amount = 3m,
-                            Name = "चटनी",
-                            RecipeId = 2L
-                        });
                 });
 
             modelBuilder.Entity("RecipeBook.Data.Recipe", b =>
@@ -146,17 +90,12 @@ namespace RecipeBook.Migrations
             modelBuilder.Entity("RecipeBook.Data.Ingredient", b =>
                 {
                     b.HasOne("RecipeBook.Data.Recipe", "Recipe")
-                        .WithMany("Ingredients")
+                        .WithMany()
                         .HasForeignKey("RecipeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Recipe");
-                });
-
-            modelBuilder.Entity("RecipeBook.Data.Recipe", b =>
-                {
-                    b.Navigation("Ingredients");
                 });
 #pragma warning restore 612, 618
         }

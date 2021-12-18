@@ -27,7 +27,7 @@ namespace RecipeBook.Data
         public string Name { get; set; }
         public string Description { get; set; }
         public string ImageUrl { get; set; }
-        [NotMapped]
+    
         public virtual List<Ingredient> Ingredients { get; set; }
     }
 }

@@ -12,6 +12,10 @@ namespace RecipeBook.Models
         [Required]
         public string Name { get; set; }
 
+        [Required]
         public decimal Amount { get; set; }
+
+        [Required]
+        public int RecipeId { get; set; }
     }
 }

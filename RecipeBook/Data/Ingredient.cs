@@ -11,10 +11,17 @@ namespace RecipeBook.Data
         [Required]
         public string Name { get; set; }
         public decimal Amount { get; set; }
-        public Ingredient(string Name,decimal Amount)
+
+        [ForeignKey(nameof(Recipe))]
+        public uint RecipeId { get; set; }
+        public Recipe Recipe { get; set; }
+
+        public Ingredient(uint id,string Name,decimal Amount,uint RecipeId=0)
         {
+            this.Id = id;
             this.Name = Name;
             this.Amount = Amount;
+            this.RecipeId = RecipeId;
         }
     }
 }

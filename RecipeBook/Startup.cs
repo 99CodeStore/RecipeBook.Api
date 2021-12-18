@@ -7,6 +7,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using RecipeBook.Configuration;
 using RecipeBook.Data;
+using RecipeBook.IRepository;
+using RecipeBook.Repository;
 
 namespace RecipeBook
 {
@@ -37,6 +39,8 @@ namespace RecipeBook
 
             services.AddAutoMapper(typeof(MapperInitializer));
 
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
@@ -47,8 +51,10 @@ namespace RecipeBook
                     Description = "Recipe Book-API provides REST-APIs for Receipe Book Application for various plateforms like Angular Apps, Android Apps etc. "
                 });
             });
-            
-            services.AddControllers();
+
+            services.AddControllers().AddNewtonsoftJson(options =>
+            options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -71,6 +77,10 @@ namespace RecipeBook
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller=Home}/{action=Index}/{id?}"
+                    );
                 endpoints.MapControllers();
             });
         }
