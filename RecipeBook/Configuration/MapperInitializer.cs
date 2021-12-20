@@ -16,6 +16,7 @@ namespace RecipeBook.Configuration
             CreateMap<Recipe, CreateRecipeDto>().ReverseMap();
             CreateMap<Ingredient, IngredientDto>().ReverseMap();
             CreateMap<Ingredient, CreateIngredientDto>().ReverseMap();
+            CreateMap<ApiUser, UserDto>().ReverseMap();
         }
     }
 }

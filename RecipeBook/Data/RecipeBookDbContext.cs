@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using RecipeBook.Models;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RecipeBook.Data
 {
-    public class RecipeBookDbContext : DbContext
+    public class RecipeBookDbContext :  IdentityDbContext<ApiUser>
     {
         public RecipeBookDbContext(DbContextOptions options) : base(options)
         { }
@@ -17,6 +18,8 @@ namespace RecipeBook.Data
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            base.OnModelCreating(builder);
+
             builder.Entity<Recipe>().HasData(
                     new Recipe()
                     {
