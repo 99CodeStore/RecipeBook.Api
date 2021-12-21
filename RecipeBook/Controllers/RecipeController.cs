@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -14,6 +15,7 @@ using System.Threading.Tasks;
 namespace RecipeBook.Controllers
 {
     //[Route("api/[controller]")]
+    [Authorize]
     [Route("[controller]")]
     [ApiController]
     public class RecipeController : ControllerBase
