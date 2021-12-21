@@ -18,7 +18,7 @@ namespace RecipeBook.IRepository
             );
         Task Insert(T entity);
         Task InsertRange(IEnumerable<T> entities);
-        Task Delete(T Id);
+        Task Delete(uint Id);
         void DeleteRange(IEnumerable<T> Entities);
         void Update(T entity);
 

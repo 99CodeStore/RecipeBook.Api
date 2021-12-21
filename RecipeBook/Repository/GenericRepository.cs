@@ -20,7 +20,7 @@ namespace RecipeBook.Repository
             db = recipeBookDbContext.Set<T>();
 
         }
-        public async Task Delete(T Id)
+        public async Task Delete(uint Id)
         {
             var entity = await db.FindAsync(Id);
             db.Remove(entity);

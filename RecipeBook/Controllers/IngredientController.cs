@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using RecipeBook.Data;
 using RecipeBook.IRepository;
 using RecipeBook.Models;
 using System;
@@ -33,13 +34,13 @@ namespace RecipeBook.Controllers
         }
         // GET: api/<IngredientController>
         [HttpGet("recipeIdBy/{recipeId}")]
-        [ProducesResponseType( StatusCodes.Status200OK)]
-        [ProducesResponseType( StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> Ingredients(uint? RecipeId)
         {
             try
             {
-                var ingredient = await unitOfWork.Ingredients.GetAll(x=>x.RecipeId==RecipeId.GetValueOrDefault());
+                var ingredient = await unitOfWork.Ingredients.GetAll(x => x.RecipeId == RecipeId.GetValueOrDefault());
                 var result = maper.Map<IList<IngredientDto>>(ingredient);
                 return Ok(result);
             }
@@ -51,14 +52,14 @@ namespace RecipeBook.Controllers
         }
 
         // GET api/<IngredientController>/5
-        [HttpGet("{id:int}")]
+        [HttpGet("{id:int}", Name = "Ingredient")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> Ingredient(int id)
         {
             try
             {
-                var ingredient = await unitOfWork.Ingredients.Get(x => x.Id == id,new List<string> { "Recipe" });
+                var ingredient = await unitOfWork.Ingredients.Get(x => x.Id == id, new List<string> { "Recipe" });
                 var result = maper.Map<IngredientDto>(ingredient);
                 return Ok(result);
             }
@@ -70,21 +71,113 @@ namespace RecipeBook.Controllers
         }
 
         // POST api/<IngredientController>
+        [Authorize(Roles = "Administrator")]
         [HttpPost]
-        public void Post([FromBody] string value)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> CreateIngredient([FromBody] CreateIngredientDto ingredientDto)
         {
+            if (!ModelState.IsValid)
+            {
+                logger.LogError($"Invalid Post attempts in {nameof(CreateIngredient)} of {nameof(IngredientController)}");
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+
+                var ingredient = maper.Map<Ingredient>(ingredientDto);
+
+                await unitOfWork.Ingredients.Insert(ingredient);
+                await unitOfWork.Save();
+
+                return CreatedAtRoute("Ingredient", new { Id = ingredient.Id }, ingredient);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error On {nameof(CreateIngredient)} of {nameof(IngredientController)}");
+                return StatusCode(500, "Internal server error. Please try again later.");
+            }
         }
 
+
         // PUT api/<IngredientController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPut("{id:int}")]
+        [Authorize(Roles = "Administrator")]
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> UpdateIngredient(uint Id, [FromBody] UpdateIngredientDto ingredientDto)
         {
+            if (!ModelState.IsValid || Id < 1)
+            {
+                logger.LogError($"Invalid Update attempts in {nameof(UpdateIngredient)} of {nameof(IngredientController)}");
+                return BadRequest(ModelState);
+            }
+
+
+            try
+            {
+                var ingredient = await unitOfWork.Ingredients.Get(q => q.Id == Id);
+
+                if (ingredient == null)
+                {
+                    logger.LogError($"Invalid Update attempts in {nameof(UpdateIngredient)} of {nameof(IngredientController)}");
+                    return BadRequest($"Submitted data is invalid.");
+                }
+
+                maper.Map(ingredientDto, ingredient);
+
+                unitOfWork.Ingredients.Update(ingredient);
+
+                await unitOfWork.Save();
+
+                return Accepted(ingredient);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error On {nameof(UpdateIngredient)} of {nameof(IngredientController)}");
+                return StatusCode(500, "Internal server error. Please try again later.");
+            }
         }
 
         // DELETE api/<IngredientController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpDelete("{id:int}")]
+
+        [Authorize(Roles = "Administrator")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> DeleteIngredient(uint Id, [FromBody] UpdateIngredientDto ingredientDto)
         {
+            if (!ModelState.IsValid || Id < 1)
+            {
+                logger.LogError($"Invalid Delete attempts in {nameof(DeleteIngredient)} of {nameof(IngredientController)}");
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var ingredient = await unitOfWork.Ingredients.Get(q => q.Id == Id);
+
+                if (ingredient == null)
+                {
+                    logger.LogError($"Invalid Delete attempts in {nameof(DeleteIngredient)} of {nameof(IngredientController)}");
+                    return BadRequest($"Submitted data is invalid.");
+                }
+
+                await unitOfWork.Ingredients.Delete(Id);
+
+                await unitOfWork.Save();
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error On {nameof(DeleteIngredient)} of {nameof(IngredientController)}");
+                return StatusCode(500, "Internal server error. Please try again later.");
+            }
         }
     }
 }

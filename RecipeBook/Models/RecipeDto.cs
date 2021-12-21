@@ -19,6 +19,10 @@ namespace RecipeBook.Models
 
         public List<CreateIngredientDto> Ingredients { get; set; }
     }
+    public class UpdateRecipeDto : CreateRecipeDto
+    {
+
+    }
 
     public class RecipeDto : CreateRecipeDto
     {

@@ -12,4 +12,9 @@ namespace RecipeBook.Models
         public uint Id { get; set; }
          
     }
+
+    public class UpdateIngredientDto : CreateIngredientDto
+    {
+
+    }
 }
