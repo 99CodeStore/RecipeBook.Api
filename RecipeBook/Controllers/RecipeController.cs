@@ -6,17 +6,16 @@ using Microsoft.Extensions.Logging;
 using RecipeBook.Data;
 using RecipeBook.IRepository;
 using RecipeBook.Models;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace RecipeBook.Controllers
 {
-    //[Route("api/[controller]")]
-    [Authorize]
+    // [Authorize]
+    // 
+    [ApiVersion("1.0")]
     [Route("[controller]")]
     [ApiController]
     public class RecipeController : ControllerBase
@@ -37,40 +36,28 @@ namespace RecipeBook.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> GetRecipes()
+        public async Task<ActionResult> GetRecipes([FromQuery] PagedRequestInput pagedRequest)
         {
-            try
-            {
-                var recipes = await unitOfWork.Recipes.GetAll();
-                var result = maper.Map<IList<RecipeDto>>(recipes);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error On {nameof(GetRecipes)} of {nameof(RecipeController)}");
-                return StatusCode(500, "Internal server error. Please try again later.");
-            }
+
+            var recipes = await unitOfWork.Recipes.GetPagedList(pagedRequest);
+            var result = maper.Map<IList<RecipeDto>>(recipes);
+            return Ok(result);
         }
 
         // GET api/<RecipeController>/5
-        [HttpGet("{id:int}",Name = "GetRecipe")]
+        [ResponseCache(CacheProfileName = "120SecondsDuration")]
+        [HttpGet("{id:int}", Name = "GetRecipe")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> GetRecipe(int id)
         {
-            try
-            {
-                var recipe = await unitOfWork.Recipes.Get(x => x.Id == id,
-                    new List<string> { "Ingredients" }
-                    );
-                var result = maper.Map<RecipeDto>(recipe);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error On {nameof(GetRecipe)} of {nameof(RecipeController)}");
-                return StatusCode(500, "Internal server error. Please try again later.");
-            }
+
+            var recipe = await unitOfWork.Recipes.Get(x => x.Id == id,
+                new List<string> { "Ingredients" }
+                );
+            var result = maper.Map<RecipeDto>(recipe);
+            return Ok(result);
+
         }
 
         // POST api/<RecipeController>
@@ -87,21 +74,14 @@ namespace RecipeBook.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
-            {
 
-                var recipe = maper.Map<Recipe>(recipeDto);
+            var recipe = maper.Map<Recipe>(recipeDto);
 
-                await unitOfWork.Recipes.Insert(recipe);
-                await unitOfWork.Save();
+            await unitOfWork.Recipes.Insert(recipe);
+            await unitOfWork.Save();
 
-                return CreatedAtRoute("GetRecipe",new { Id=recipe.Id}, recipe);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error On {nameof(CreateRecipe)} of {nameof(RecipeController)}");
-                return StatusCode(500, "Internal server error. Please try again later.");
-            }
+            return CreatedAtRoute("GetRecipe", new { Id = recipe.Id }, recipe);
+
         }
 
         // PUT api/<RecipeController>/5
@@ -118,29 +98,22 @@ namespace RecipeBook.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
+            var recipe = await unitOfWork.Recipes.Get(q => q.Id == Id);
+
+            if (recipe == null)
             {
-                var recipe = await unitOfWork.Recipes.Get(q => q.Id == Id);
-
-                if (recipe == null)
-                {
-                    logger.LogError($"Invalid Update attempts in {nameof(UpdateRecipe)} of {nameof(RecipeController)}");
-                    return BadRequest($"Submitted data is invalid.");
-                }
-
-                maper.Map(recipeDto, recipe);
-
-                unitOfWork.Recipes .Update(recipe);
-
-                await unitOfWork.Save();
-
-                return Accepted(recipe);
+                logger.LogError($"Invalid Update attempts in {nameof(UpdateRecipe)} of {nameof(RecipeController)}");
+                return BadRequest($"Submitted data is invalid.");
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error On {nameof(UpdateRecipe)} of {nameof(IngredientController)}");
-                return StatusCode(500, "Internal server error. Please try again later.");
-            }
+
+            maper.Map(recipeDto, recipe);
+
+            unitOfWork.Recipes.Update(recipe);
+
+            await unitOfWork.Save();
+
+            return Accepted(recipe);
+
         }
 
         // DELETE api/<RecipeController>/5
@@ -158,28 +131,20 @@ namespace RecipeBook.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
+            var recipe = await unitOfWork.Recipes.Get(q => q.Id == Id);
+
+            if (recipe == null)
             {
-                var recipe = await unitOfWork.Recipes.Get(q => q.Id == Id);
-
-                if (recipe == null)
-                {
-                    logger.LogError($"Invalid Delete attempts in {nameof(DeleteRecipe)} of {nameof(RecipeController)}");
-                    return BadRequest($"Submitted data is invalid.");
-                }
-
-                await unitOfWork.Recipes.Delete(Id);
-
-                await unitOfWork.Save();
-
-                return NoContent();
+                logger.LogError($"Invalid Delete attempts in {nameof(DeleteRecipe)} of {nameof(RecipeController)}");
+                return BadRequest($"Submitted data is invalid.");
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error On {nameof(DeleteRecipe)} of {nameof(RecipeController)}");
-                return StatusCode(500, "Internal server error. Please try again later.");
-            }
+
+            await unitOfWork.Recipes.Delete(Id);
+
+            await unitOfWork.Save();
+
+            return NoContent();
+
         }
-
     }
 }

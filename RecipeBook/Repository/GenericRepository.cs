@@ -1,11 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RecipeBook.Data;
 using RecipeBook.IRepository;
+using RecipeBook.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using X.PagedList;
 
 namespace RecipeBook.Repository
 {
@@ -67,6 +69,34 @@ namespace RecipeBook.Repository
             }
 
             return await query.AsNoTracking().ToListAsync();
+        }
+
+        public async Task<IPagedList<T>> GetPagedList( PagedRequestInput pagedRequest,
+            Expression<Func<T, bool>> expression = null,
+            Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+            List<string> includes = null)
+        {
+            IQueryable<T> query = db;
+
+            if (expression != null)
+            {
+                query = query.Where(expression);
+            }
+
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+            }
+
+            return await query.AsNoTracking().ToPagedListAsync(pagedRequest.PageNumber,pagedRequest.PageSize);
         }
 
         public async Task Insert(T entity)

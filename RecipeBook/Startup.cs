@@ -1,18 +1,18 @@
+using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
+
 using RecipeBook.Configuration;
 using RecipeBook.Data;
 using RecipeBook.IRepository;
 using RecipeBook.Repository;
 using RecipeBook.Services;
-using System;
-using System.Collections.Generic;
+
 
 namespace RecipeBook
 {
@@ -31,6 +31,15 @@ namespace RecipeBook
             services.AddDbContext<RecipeBookDbContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("DefaultSqlServerConnection"))
             );
+
+            services.AddMemoryCache();
+
+            //services.ConfigureRateLimiting();
+
+            services.AddHttpContextAccessor();
+
+            services.ConfigureHttpCacheHeaders();
+
 
             services.AddAuthentication();
 
@@ -54,57 +63,21 @@ namespace RecipeBook
 
             services.AddScoped<IAuthManager, AuthManager>();
 
-            AddSwaggerDoc(services);
-
-            services.AddControllers().AddNewtonsoftJson(options =>
+            services.AddControllers(config =>
+            {
+                config.CacheProfiles.Add("120SecondsDuration", new CacheProfile
+                {
+                    Duration = 120
+                });
+            }).AddNewtonsoftJson(options =>
             options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
             );
+    
+            services.AddSwaggerDoc();
+            
+            services.ConfigureVersioning();
         }
-
-        private void AddSwaggerDoc(IServiceCollection services)
-        {
-            services.AddSwaggerGen(c =>
-            {
-                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                {
-                    Description = @"JWT Authorization hear using the bearer scheme .
-                    Enter 'Bearer' [space] and then your token in the text input below.
-                    Example : 'Bearer 123456789abcd'",
-                    Name = "Authorization",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer"
-
-                });
-
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement() {
-                    {
-                        new OpenApiSecurityScheme {
-
-                            Reference = new OpenApiReference {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            },
-                            Scheme = "0auth2",
-                            Name = "Bearer",
-                            In = ParameterLocation.Header
-                        },
-
-                        new List<string>()
-
-                    }
-                });
-
-                c.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Title = "Recipe Book API",
-                    Version = "v1"
-                    ,
-                    Description = "Recipe Book-API provides REST-APIs for Receipe Book Application for various plateforms like Angular Apps, Android Apps etc. "
-                });
-            });
-        }
-
+        
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
@@ -112,12 +85,28 @@ namespace RecipeBook
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Recipe Book - v1"));
+                app.UseSwaggerUI(c =>
+                {
+                   // c.SwaggerEndpoint("/swagger/v1/swagger.json", "Recipe Book - v1");
+                    string swaggerJsonBasePath = string.IsNullOrWhiteSpace(c.RoutePrefix) ? "." : "..";
+                    c.SwaggerEndpoint($"{swaggerJsonBasePath}/swagger/v1/swagger.json", "Hotel Listing API - v1");
+                }
+                
+                
+                );
             }
+
+            app.ConfigureExceptionHandler();
 
             app.UseHttpsRedirection();
 
             app.UseCors("CorsPolicyAllowAll");
+
+            app.UseResponseCaching();
+
+            app.UseHttpCacheHeaders();
+
+            //app.UseIpRateLimiting();
 
             app.UseRouting();
 

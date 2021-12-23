@@ -44,29 +44,22 @@ namespace RecipeBook.Controllers
             {
                 return BadRequest(ModelState);
             }
-            try
-            {
-                var user = mapper.Map<ApiUser>(userDto);
-                user.UserName = userDto.Email;
-                var result = await userManager.CreateAsync(user, userDto.Password);
 
-                if (!result.Succeeded)
+            var user = mapper.Map<ApiUser>(userDto);
+            user.UserName = userDto.Email;
+            var result = await userManager.CreateAsync(user, userDto.Password);
+
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
                 {
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError(error.Code, error.Description);
-                    }
-                    return BadRequest(ModelState);
+                    ModelState.AddModelError(error.Code, error.Description);
                 }
-                await userManager.AddToRolesAsync(user, userDto.Roles);
-                return Accepted();
+                return BadRequest(ModelState);
             }
-            catch (Exception ex)
-            {
+            await userManager.AddToRolesAsync(user, userDto.Roles);
+            return Accepted();
 
-                logger.LogError(ex, $"Registration attempts for {userDto.Email}");
-                return Problem($"Something went wrong in the {nameof(Register)}", statusCode: 500);
-            }
         }
 
         [HttpPost]
@@ -79,22 +72,14 @@ namespace RecipeBook.Controllers
             {
                 return BadRequest(ModelState);
             }
-            try
+
+            if (!await authManager.ValidateUser(loginDto))
             {
-
-                if (!await authManager.ValidateUser(loginDto))
-                {
-                    return Unauthorized();
-                }
-
-                return Accepted(new { Token = await authManager.CreateToken() });
+                return Unauthorized();
             }
-            catch (Exception ex)
-            {
 
-                logger.LogError(ex, $"Login attempts for {loginDto.Email}");
-                return Problem($"Something went wrong in the {nameof(Register)}", statusCode: 500);
-            }
+            return Accepted(new { Token = await authManager.CreateToken() });
+
         }
 
     }

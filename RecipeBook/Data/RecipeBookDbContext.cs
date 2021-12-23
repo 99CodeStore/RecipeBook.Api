@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace RecipeBook.Data
 {
-    public class RecipeBookDbContext :  IdentityDbContext<ApiUser>
+    public class RecipeBookDbContext : IdentityDbContext<ApiUser>
     {
         public RecipeBookDbContext(DbContextOptions options) : base(options)
         { }
 
-        DbSet<Recipe> Recipes { get; set; }
-        DbSet<Ingredient> Ingredients { get; set; }
+        public DbSet<Recipe> Recipes { get; set; }
+        public DbSet<Ingredient> Ingredients { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -23,7 +23,7 @@ namespace RecipeBook.Data
 
             builder.ApplyConfiguration(new RoleConfiguration());
 
-            builder.ApplyConfiguration(new RecipeConfiguration ());
+            builder.ApplyConfiguration(new RecipeConfiguration());
             builder.ApplyConfiguration(new IngredientConfiguration());
 
         }

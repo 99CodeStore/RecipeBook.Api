@@ -6,9 +6,7 @@ using Microsoft.Extensions.Logging;
 using RecipeBook.Data;
 using RecipeBook.IRepository;
 using RecipeBook.Models;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -38,17 +36,11 @@ namespace RecipeBook.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> Ingredients(uint? RecipeId)
         {
-            try
-            {
-                var ingredient = await unitOfWork.Ingredients.GetAll(x => x.RecipeId == RecipeId.GetValueOrDefault());
-                var result = maper.Map<IList<IngredientDto>>(ingredient);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error On {nameof(Ingredients)} of {nameof(IngredientController)}");
-                return StatusCode(500, "Internal server error. Please try again later.");
-            }
+
+            var ingredient = await unitOfWork.Ingredients.GetAll(x => x.RecipeId == RecipeId.GetValueOrDefault());
+            var result = maper.Map<IList<IngredientDto>>(ingredient);
+            return Ok(result);
+
         }
 
         // GET api/<IngredientController>/5
@@ -57,17 +49,11 @@ namespace RecipeBook.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> Ingredient(int id)
         {
-            try
-            {
-                var ingredient = await unitOfWork.Ingredients.Get(x => x.Id == id, new List<string> { "Recipe" });
-                var result = maper.Map<IngredientDto>(ingredient);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error On {nameof(Ingredients)} of {nameof(IngredientController)}");
-                return StatusCode(500, "Internal server error. Please try again later.");
-            }
+
+            var ingredient = await unitOfWork.Ingredients.Get(x => x.Id == id, new List<string> { "Recipe" });
+            var result = maper.Map<IngredientDto>(ingredient);
+            return Ok(result);
+
         }
 
         // POST api/<IngredientController>
@@ -84,21 +70,14 @@ namespace RecipeBook.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
-            {
 
-                var ingredient = maper.Map<Ingredient>(ingredientDto);
+            var ingredient = maper.Map<Ingredient>(ingredientDto);
 
-                await unitOfWork.Ingredients.Insert(ingredient);
-                await unitOfWork.Save();
+            await unitOfWork.Ingredients.Insert(ingredient);
+            await unitOfWork.Save();
 
-                return CreatedAtRoute("Ingredient", new { Id = ingredient.Id }, ingredient);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error On {nameof(CreateIngredient)} of {nameof(IngredientController)}");
-                return StatusCode(500, "Internal server error. Please try again later.");
-            }
+            return CreatedAtRoute("Ingredient", new { Id = ingredient.Id }, ingredient);
+
         }
 
 
@@ -117,29 +96,22 @@ namespace RecipeBook.Controllers
             }
 
 
-            try
+            var ingredient = await unitOfWork.Ingredients.Get(q => q.Id == Id);
+
+            if (ingredient == null)
             {
-                var ingredient = await unitOfWork.Ingredients.Get(q => q.Id == Id);
-
-                if (ingredient == null)
-                {
-                    logger.LogError($"Invalid Update attempts in {nameof(UpdateIngredient)} of {nameof(IngredientController)}");
-                    return BadRequest($"Submitted data is invalid.");
-                }
-
-                maper.Map(ingredientDto, ingredient);
-
-                unitOfWork.Ingredients.Update(ingredient);
-
-                await unitOfWork.Save();
-
-                return Accepted(ingredient);
+                logger.LogError($"Invalid Update attempts in {nameof(UpdateIngredient)} of {nameof(IngredientController)}");
+                return BadRequest($"Submitted data is invalid.");
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error On {nameof(UpdateIngredient)} of {nameof(IngredientController)}");
-                return StatusCode(500, "Internal server error. Please try again later.");
-            }
+
+            maper.Map(ingredientDto, ingredient);
+
+            unitOfWork.Ingredients.Update(ingredient);
+
+            await unitOfWork.Save();
+
+            return Accepted(ingredient);
+
         }
 
         // DELETE api/<IngredientController>/5
@@ -157,27 +129,21 @@ namespace RecipeBook.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
+
+            var ingredient = await unitOfWork.Ingredients.Get(q => q.Id == Id);
+
+            if (ingredient == null)
             {
-                var ingredient = await unitOfWork.Ingredients.Get(q => q.Id == Id);
-
-                if (ingredient == null)
-                {
-                    logger.LogError($"Invalid Delete attempts in {nameof(DeleteIngredient)} of {nameof(IngredientController)}");
-                    return BadRequest($"Submitted data is invalid.");
-                }
-
-                await unitOfWork.Ingredients.Delete(Id);
-
-                await unitOfWork.Save();
-
-                return NoContent();
+                logger.LogError($"Invalid Delete attempts in {nameof(DeleteIngredient)} of {nameof(IngredientController)}");
+                return BadRequest($"Submitted data is invalid.");
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error On {nameof(DeleteIngredient)} of {nameof(IngredientController)}");
-                return StatusCode(500, "Internal server error. Please try again later.");
-            }
+
+            await unitOfWork.Ingredients.Delete(Id);
+
+            await unitOfWork.Save();
+
+            return NoContent();
+
         }
     }
 }
